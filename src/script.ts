@@ -14,12 +14,12 @@ const canvasHeight = canvas.clientHeight;
 
 const dots: Point[] = [];
 
-for (let i = 3; i > 0; i--) {
+for (let i = 15; i > 0; i--) {
     dots.push(new Point(Math.floor(Math.random() * canvasWidth), Math.floor(Math.random() * canvasHeight)));
 }
 
 for (const dot of dots) {
-    drawDot(dot, '#F00');
+    drawDot(dot, '#000');
 }
 
 const triangulation: Triangle[] = [];
@@ -36,7 +36,7 @@ canvas.onclick = ev => {
     delaunayTriangulation([point]);
 }
 
-function drawDot(point: Point, color = "#F03C69") {
+function drawDot(point: Point, color = "#000") {
     ctx.beginPath();
     ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI, false);
     ctx.fillStyle = color;
@@ -45,9 +45,6 @@ function drawDot(point: Point, color = "#F03C69") {
 }
 
 function delaunayTriangulation(points: Point[]) {
-    for (const dot of dots) {
-        drawDot(dot, '#F00');
-    }
 
     // bowyer watson algorithm
     for (const dot of points) {
@@ -80,20 +77,17 @@ function delaunayTriangulation(points: Point[]) {
         }
     }
 
+    const circumCenters: Point[] = [];
+
     for (const triangle of triangulation) {
         if (triangle.sharesSamePointWith(rootTriangle)) {
             continue;
         }
 
-        // ctx.beginPath();
-        // ctx.moveTo(triangle.a.x, triangle.a.y);
-        // ctx.lineTo(triangle.b.x, triangle.b.y);
-        // ctx.lineTo(triangle.c.x, triangle.c.y);
-        // ctx.lineTo(triangle.a.x, triangle.a.y);
-        // ctx.stroke();
-        // ctx.closePath();
-
         let circumCenter = triangle.getCircumCenter();
+        if (circumCenters.filter(a => a.isEqualTo(circumCenter)).length === 0) {
+            circumCenters.push(circumCenter);
+        }
         // drawDot(circumCenter, "#0F0");
 
         const edges1 = triangle.getEdges();
@@ -104,21 +98,109 @@ function delaunayTriangulation(points: Point[]) {
                 ctx.beginPath();
                 ctx.moveTo(circumCenter.x, circumCenter.y);
                 const circumCenter1 = tri.getCircumCenter();
+                if (circumCenters.filter(a => a.isEqualTo(circumCenter1)).length === 0) {
+                    circumCenters.push(circumCenter1);
+                }
                 ctx.lineTo(circumCenter1.x, circumCenter1.y);
-                ctx.strokeStyle = "#0F0";
+                ctx.strokeStyle = "#000";
                 ctx.stroke();
                 ctx.closePath();
                 ctx.strokeStyle = "#000";
             }
         }
+    }
 
-        // ctx.beginPath();
-        // ctx.moveTo(triangle.a.x, triangle.a.y);
-        // ctx.lineTo(triangle.b.x, triangle.b.y);
-        // ctx.lineTo(triangle.c.x, triangle.c.y);
-        // ctx.lineTo(triangle.a.x, triangle.a.y);
-        // ctx.stroke();
-        // ctx.closePath();
+    const centerToPointsMap: { center: Point, points: Point[] }[] = [];
+    console.log(circumCenters)
+    console.log(dots);
+
+    for (const center of circumCenters) {
+        const map = dots.flatMap(point => ({point: point, distance: point.distanceTo(center)}));
+        const minimum = map.sort((a, b) => a.distance <= b.distance ? -1 : 1)[0].distance;
+        const surroundingPoints = map.filter(a => {
+            console.log(a.distance, minimum);
+            let message = Number(a.distance).toFixed(5) === Number(minimum).toFixed(5);
+            console.log(message);
+            return message
+        }).map(a => a.point);
+        centerToPointsMap.push({center: center, points: surroundingPoints});
+    }
+    console.log(centerToPointsMap);
+
+    for (const point of dots) {
+        // const point = dots[0];
+        let pointsToConnect = centerToPointsMap.filter(entry => entry.points.filter(p => p.isEqualTo(point)).length === 1).map(entry => entry.center);
+
+        let centerPointX = 0;
+        let centerPointY = 0;
+        pointsToConnect.forEach(pt => {
+            centerPointX += pt.x;
+            centerPointY += pt.y;
+        });
+        centerPointX /= pointsToConnect.length;
+        centerPointY /= pointsToConnect.length;
+        const centerPoint = new Point(centerPointX, centerPointY);
+        pointsToConnect = pointsToConnect.map(pt => new Point(pt.x - centerPoint.x, pt.y - centerPoint.y))
+            .sort((a, b) => {
+                let angleA = a.angleTo(new Point(0,0));
+                let angleB = b.angleTo(new Point(0,0));
+                if (angleA < angleB) {
+                    return 1;
+                }
+
+                return angleA == angleB && a.distanceTo(new Point(0, 0)) < b.distanceTo(new Point(0, 0)) ? 1 : -1;
+            })
+            .map(pt => new Point(pt.x + centerPoint.x, pt.y + centerPoint.y));
+
+        // drawDot(point, "#F00");
+        // pointsToConnect.forEach(point => drawDot(point, "#0F0"));
+
+        ctx.beginPath();
+        ctx.moveTo(pointsToConnect[0].x, pointsToConnect[0].y);
+
+        for (let i = 1; i < pointsToConnect.length; i++) {
+            ctx.lineTo(pointsToConnect[i].x, pointsToConnect[i].y);
+        }
+
+        ctx.lineTo(pointsToConnect[0].x, pointsToConnect[0].y);
+        // const hash = hash;
+        // const r = (hash & 0xFF0000) >> 16;
+        // const g = (hash & 0x00FF00) >> 8;
+        // const b = hash & 0x0000FF;
+        const rint = Math.round(0xffffff * Math.random());
+        ctx.fillStyle = ('#0' + rint.toString(16)).replace(/^#0([0-9a-f]{6})$/i, '#$1');
+        ctx.strokeStyle = "#000";
+        ctx.stroke();
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    // for (const dot of dots) {
+    //     let map = circumCenters.flatMap(center => ({point: center, distance: center.distanceTo(dot)}));
+    //     const minimum = map.sort((a,b) => a.distance < b.distance ? -1 : 1)[0].distance;
+    //     const newPoints = map.filter(a => a.distance === minimum);
+    //
+    //     ctx.beginPath();
+    //     ctx.moveTo(newPoints[0].point.x, newPoints[0].point.y);
+    //
+    //     for (let i = 1; i < newPoints.length; i++) {
+    //         ctx.lineTo(newPoints[i].point.x, newPoints[i].point.y);
+    //     }
+    //
+    //     ctx.lineTo(newPoints[0].point.x, newPoints[0].point.y)
+    //     ctx.fillStyle = "#F00";
+    //     ctx.strokeStyle = "#F00";
+    //     ctx.stroke();
+    //     ctx.fill();
+    //     ctx.closePath()
+    //
+    //     console.log("==================")
+    //     console.log(map);
+    //     console.log(newPoints);
+    // }
+
+    for (const dot of dots) {
+        drawDot(dot, '#000');
     }
 
 }

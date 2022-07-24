@@ -134,3 +134,19 @@ test('shares same point', () => {
     expect(triangleC.sharesSamePointWith(triangleD)).toBeFalsy();
     expect(triangleA.sharesSamePointWith(triangleD)).toBeTruthy();
 });
+
+test('getAngle', () => {
+    const pointA = new Point(0,0);
+    const pointB = new Point(1, 0);
+    const pointC = new Point(0,1);
+    const pointD = new Point(-1, 0);
+    const pointE = new Point(0, -1);
+    const pointF = new Point(1,1);
+
+    expect(pointB.angleTo(pointA)).toBe(0);
+    expect(pointC.angleTo(pointA)).toBe(Math.PI/2);
+    expect(pointD.angleTo(pointA)).toBe(Math.PI);
+    expect(pointE.angleTo(pointA)).toBe(3*Math.PI/2);
+
+    expect(pointF.angleTo(pointA)).toBe(Math.PI/4);
+})
