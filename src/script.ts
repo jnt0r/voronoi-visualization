@@ -14,6 +14,8 @@ const canvasHeight = canvas.clientHeight;
 
 const dots: Point[] = [];
 
+const colorsMapping: Map<String, string | CanvasGradient | CanvasPattern> = new Map();
+
 for (let i = 15; i > 0; i--) {
     dots.push(new Point(Math.floor(Math.random() * canvasWidth), Math.floor(Math.random() * canvasHeight)));
 }
@@ -163,12 +165,17 @@ function delaunayTriangulation(points: Point[]) {
         }
 
         ctx.lineTo(pointsToConnect[0].x, pointsToConnect[0].y);
-        // const hash = hash;
-        // const r = (hash & 0xFF0000) >> 16;
-        // const g = (hash & 0x00FF00) >> 8;
-        // const b = hash & 0x0000FF;
-        const rint = Math.round(0xffffff * Math.random());
-        ctx.fillStyle = ('#0' + rint.toString(16)).replace(/^#0([0-9a-f]{6})$/i, '#$1');
+
+        let color: string | CanvasGradient | CanvasPattern;
+        let h = hash(pointsToConnect);
+        if (colorsMapping.has(h)) {
+            color = colorsMapping.get(h);
+        } else {
+            const rint = Math.round(0xffffff * Math.random());
+            color = ('#0' + rint.toString(16)).replace(/^#0([0-9a-f]{6})$/i, '#$1')
+            colorsMapping.set(h, color);
+        }
+        ctx.fillStyle = color;
         ctx.strokeStyle = "#000";
         ctx.stroke();
         ctx.fill();
@@ -218,4 +225,12 @@ function edgeIsNotSharedByAnyOtherTriangleIn(badTriangles: Triangle[], edge1: Ed
     }
 
     return true;
+}
+
+function hash(points: Point[]): String {
+    let hash = "";
+    for (let point of points) {
+        hash += point.x + "" + point.y
+    }
+    return hash;
 }
