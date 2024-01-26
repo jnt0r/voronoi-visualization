@@ -18,21 +18,14 @@ for (let i = 50; i > 0; i--) {
     dots.push(new Point(Math.floor(Math.random() * canvasWidth), Math.floor(Math.random() * canvasHeight)));
 }
 
-for (const dot of dots) {
-    // drawDot(dot, '#000');
-}
-
-const rootTriangle = new Triangle(new Point(0, 0), new Point(2 * canvasWidth, 0), new Point(0, 2 * canvasHeight));
+const rootTriangleA = new Triangle(new Point(0, 0), new Point(canvasWidth, 0), new Point(0, canvasHeight));
+const rootTriangleB = new Triangle(new Point(canvasWidth, canvasHeight), new Point(canvasWidth, 0), new Point(0, canvasHeight));
 
 window.requestAnimationFrame(animate);
 
 function animate(): void {
-    const start = Date.now();
     ctx.clearRect(0, 0, 2 * canvasWidth, 2 * canvasHeight);
     delaunayTriangulation(dots);
-    const end = Date.now();
-    const time_taken = end-start;
-    console.log("Time taken: ", time_taken);
     
     window.requestAnimationFrame(animate);
 }
@@ -43,7 +36,7 @@ canvas.onclick = ev => {
 }
 
 function delaunayTriangulation(points: Point[]) {
-    const triangulation = [rootTriangle];
+    const triangulation = [rootTriangleA, rootTriangleB];
 
     // bowyer watson algorithm
     for (const dot of points) {
@@ -79,7 +72,7 @@ function delaunayTriangulation(points: Point[]) {
     const circumCenters: Set<Point> = new Set();
 
     for (const triangle of triangulation) {
-        if (triangle.sharesSamePointWith(rootTriangle)) {
+        if (triangle.sharesSamePointWith(rootTriangleA) || triangle.sharesSamePointWith(rootTriangleB)) {
             continue;
         }
 
