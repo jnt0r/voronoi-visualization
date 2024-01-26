@@ -31,10 +31,10 @@ export default class Point {
     }
 
     private tick(): void {
-        if (this.x <= 0) {
+        if (this.x <= 0 || this.x >= 1920) {
             this.velocity_x *= -1;
         }
-        if (this.y <= 0) {
+        if (this.y <= 0 || this.y >= 919) {
             this.velocity_y *= -1;
         }
         this.x += 0.5 * this.velocity_x;
