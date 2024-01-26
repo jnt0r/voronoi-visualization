@@ -1,5 +1,14 @@
 export default class Point {
-    public constructor(public readonly x: number, public readonly y: number) {
+    private velocity_x: number;
+    private velocity_y: number;
+    public readonly color: string;
+
+    public constructor(public x: number, public y: number) {
+        Math.floor(Math.random() * (1 - -1 + 1)) + -1;
+        this.velocity_x = Math.floor(Math.random() * (1 - -1 + 1)) + -1;
+        this.velocity_y = Math.floor(Math.random() * (1 - -1 + 1)) + -1;
+        const rint = Math.round(0xffffff * Math.random());
+        this.color = ('#0' + rint.toString(16)).replace(/^#0([0-9a-f]{6})$/i, '#$1')
     }
 
     isEqualTo(point: Point): boolean {
@@ -19,6 +28,26 @@ export default class Point {
             return angle + 2 * Math.PI;
         }
         return angle;
+    }
+
+    private tick(): void {
+        if (this.x <= 0) {
+            this.velocity_x *= -1;
+        }
+        if (this.y <= 0) {
+            this.velocity_y *= -1;
+        }
+        this.x += 0.5 * this.velocity_x;
+        this.y += 0.5 * this.velocity_y;
+    }
+
+    draw(ctx: CanvasRenderingContext2D): void {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI, false);
+            ctx.fillStyle = "#000";
+            ctx.fill();
+            ctx.closePath();
+            this.tick();
     }
 }
 
