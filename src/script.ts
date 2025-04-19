@@ -198,12 +198,11 @@ function connectPoints(pointsToConnect: Point[], point: Point) {
     ctx.closePath();
 }
 
-function edgeIsNotSharedByAnyOtherTriangleIn(badTriangles: Triangle[], edge1: Edge, triang: Triangle) {
-    for (const triangle of badTriangles) {
-        if (!(triangle === triang)) { // ignore the same triangle
-            const edges = triangle.getEdges();
-            for (const edge of edges) {
-                if (edge.isEqualTo(edge1)) {
+function edgeIsNotSharedByAnyOtherTriangleIn(badTriangles: Triangle[], edge: Edge, triangle: Triangle) {
+    for (const badTriangle of badTriangles) {
+        if (!(badTriangle === triangle)) { // ignore the same triangle
+            for (const e of badTriangle.getEdges()) {
+                if (e.isEqualTo(edge)) {
                     return false;
                 }
             }
