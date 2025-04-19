@@ -4,7 +4,6 @@ export default class Point {
     public readonly color: string;
 
     public constructor(public x: number, public y: number) {
-        Math.floor(Math.random() * (1 - -1 + 1)) + -1;
         this.velocity_x = Math.floor(Math.random() * (1 - -1 + 1)) + -1;
         this.velocity_y = Math.floor(Math.random() * (1 - -1 + 1)) + -1;
         const rint = Math.round(0xffffff * Math.random());

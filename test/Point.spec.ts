@@ -2,6 +2,10 @@ import Point from "../src/point";
 import Edge from "../src/edge";
 import Triangle from "../src/triangle";
 
+beforeEach(() => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.5);
+})
+
 test('points should be equal', () => {
     const a: Point = new Point(10, 20);
     const b: Point = new Point(20, 30);
@@ -150,3 +154,42 @@ test('getAngle', () => {
 
     expect(pointF.angleTo(pointA)).toBe(Math.PI/4);
 })
+
+test('PointArray equal', () => {
+    const pointsA = [
+        new Point(1,2),
+        new Point(5,9),
+        new Point(11,2),
+        new Point(5,4),
+    ];
+    const pointsB = [
+        new Point(1,2),
+        new Point(5,9),
+        new Point(11,2),
+        new Point(5,4),
+    ];
+    console.log(pointsA);
+    console.log(pointsB);
+    console.log(pointsA == pointsB);
+
+    const map = new Map();
+    map.set(hash(pointsA), "A");
+    map.set(hash(pointsB), "B");
+
+    console.log(map)
+
+    console.log(map.get(hash([
+        new Point(1,2),
+        new Point(5,9),
+        new Point(11,2),
+        new Point(5,4),
+    ])));
+})
+
+function hash(points: Point[]): String {
+    let hash = "";
+    for (let point of points) {
+        hash += point.x + "" + point.y
+    }
+    return hash;
+}
