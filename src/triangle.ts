@@ -3,6 +3,14 @@ import Point from "./point";
 
 export default class Triangle {
     public constructor(public readonly a: Point, public readonly b: Point, public readonly c: Point) {
+        if (a.isEqualTo(b) || b.isEqualTo(c) || a.isEqualTo(c)) {
+            console.log(a, b, c)
+            throw new Error("triangle contains identical points!")
+        }
+        if ((a.x === b.x && b.x === c.x) || (a.y == b.y && b.y === c.y)) {
+            console.log(a, b, c)
+            throw new Error("triangle points lie on a straight!")
+        }
     }
 
     isEqualTo(triangle: Triangle): boolean {
@@ -25,12 +33,15 @@ export default class Triangle {
         const x1 = this.a.x;
         const x2 = this.b.x;
         const x3 = this.c.x;
+
         const y1 = this.a.y;
         const y2 = this.b.y;
         const y3 = this.c.y;
+
         const d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
         const ux = (1 / d) * ((Math.pow(x1, 2) + Math.pow(y1, 2)) * (y2 - y3) + (Math.pow(x2, 2) + Math.pow(y2, 2)) * (y3 - y1) + (Math.pow(x3, 2) + Math.pow(y3, 2)) * (y1 - y2));
         const uy = (1 / d) * ((Math.pow(x1, 2) + Math.pow(y1, 2)) * (x3 - x2) + (Math.pow(x2, 2) + Math.pow(y2, 2)) * (x1 - x3) + (Math.pow(x3, 2) + Math.pow(y3, 2)) * (x2 - x1));
+
         return new Point(ux, uy);
     }
 
@@ -46,5 +57,9 @@ export default class Triangle {
         return this.a.isEqualTo(triangle.a) || this.a.isEqualTo(triangle.b) || this.a.isEqualTo(triangle.c)
                 || this.b.isEqualTo(triangle.a) || this.b.isEqualTo(triangle.b) || this.b.isEqualTo(triangle.c)
                 || this.c.isEqualTo(triangle.a) || this.c.isEqualTo(triangle.b) || this.c.isEqualTo(triangle.c);
+    }
+
+    getPoints(): Point[] {
+        return [this.a, this.b, this.c]
     }
 }

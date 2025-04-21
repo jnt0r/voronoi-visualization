@@ -100,10 +100,10 @@ test('isPointInsideCircumcircle', () => {
     expect(triangle.isPointInsideCircumcircle(point3)).toBeTruthy();
 });
 
-test('Circumcenter', () => {
-    let point1 = new Point(0, 0);
-    let point2 = new Point(0, 10);
-    let point3 = new Point(10, 0);
+test('getCircumCenter', () => {
+    const point1 = new Point(0, 0);
+    const point2 = new Point(0, 10);
+    const point3 = new Point(10, 0);
     const triangle = new Triangle(point1, point2, point3);
 
     expect(triangle.getCircumCenter()).toEqual(new Point(5,5));

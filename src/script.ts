@@ -1,6 +1,7 @@
 import Point from "./point";
 import Triangle from "./triangle";
 import Edge from "./edge";
+import NoMovingPoint from "./noMovingPoint";
 
 const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById('canvas');
 const ctx: CanvasRenderingContext2D = <CanvasRenderingContext2D>canvas.getContext("2d");
@@ -18,13 +19,15 @@ for (let i = 50; i > 0; i--) {
     dots.push(new Point(Math.floor(Math.random() * canvasWidth), Math.floor(Math.random() * canvasHeight)));
 }
 
-const rootTriangleA = new Triangle(new Point(0, 0), new Point(canvasWidth, 0), new Point(0, canvasHeight));
-const rootTriangleB = new Triangle(new Point(canvasWidth, canvasHeight), new Point(canvasWidth, 0), new Point(0, canvasHeight));
+const rootTriangleA = new Triangle(new NoMovingPoint(0, 0), new NoMovingPoint(canvasWidth, 0), new NoMovingPoint(0, canvasHeight));
+const rootTriangleB = new Triangle(new NoMovingPoint(canvasWidth, canvasHeight), new NoMovingPoint(canvasWidth, 0), new NoMovingPoint(0, canvasHeight));
+
+dots.push(...rootTriangleA.getPoints(), new NoMovingPoint(canvasWidth, canvasHeight));
 
 window.requestAnimationFrame(animate);
 
 function animate(): void {
-    ctx.clearRect(0, 0, 2 * canvasWidth, 2 * canvasHeight);
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     delaunayTriangulation(dots);
     
     window.requestAnimationFrame(animate);
@@ -65,6 +68,17 @@ function delaunayTriangulation(points: Point[]) {
         }
 
         for (const edge of polygon) {
+            if (dot.isEqualTo(edge.from) || dot.isEqualTo(edge.to)) {
+                continue;
+            }
+            // points lie on a straight on the x axis and are no triangle
+            if (dot.x === edge.from.x && edge.from.x == edge.to.x) {
+                continue;
+            }
+            // points lie on a straight on the y axis and are no triangle
+            if (dot.y === edge.from.y && edge.from.y == edge.to.y) {
+                continue;
+            }
             triangulation.push(new Triangle(dot, edge.from, edge.to));
         }
     }
@@ -73,17 +87,21 @@ function delaunayTriangulation(points: Point[]) {
 
     for (const triangle of triangulation) {
         if (triangle.sharesSamePointWith(rootTriangleA) || triangle.sharesSamePointWith(rootTriangleB)) {
+            // continue;
+        }
+
+        if (triangle.a.isEqualTo(triangle.b) || triangle.b.isEqualTo(triangle.c) || triangle.a.isEqualTo(triangle.c)) {
             continue;
         }
 
-        let circumCenter = addCircumCenterIfNotPresent(triangle);
+        const circumCenter = addCircumCenterIfNotPresent(triangle);
         // drawDot(circumCenter, "#0F0");
 
-        const edges1 = triangle.getEdges();
+        const edges = triangle.getEdges();
         for (const tri of triangulation) {
             const edges2 = tri.getEdges();
 
-            if (edges1.filter(e => edges2.find(edge => edge.isEqualTo(e))).length > 0) {
+            if (edges.filter(e => edges2.find(edge => edge.isEqualTo(e))).length > 0) {
                 ctx.beginPath();
                 ctx.moveTo(circumCenter.x, circumCenter.y);
                 const circumCenter1 = addCircumCenterIfNotPresent(tri);
@@ -97,27 +115,19 @@ function delaunayTriangulation(points: Point[]) {
     }
 
     const centerToPointsMap: { center: Point, points: Point[] }[] = [];
-    // console.log(circumCenters)
-    // console.log(dots);
 
     circumCenters.forEach(center => {
         const map = dots.flatMap(point => ({point: point, distance: point.distanceTo(center)}));
         const minimum = map.sort((a, b) => a.distance <= b.distance ? -1 : 1)[0].distance;
-        const surroundingPoints = map.filter(a => {
-            // console.log(a.distance, minimum);
-            let message = Number(a.distance).toFixed(5) === Number(minimum).toFixed(5);
-            // console.log(message);
-            return message
-        }).map(a => a.point);
+        const surroundingPoints = map.filter(a => Number(a.distance).toFixed(5) === Number(minimum).toFixed(5)).map(a => a.point);
         centerToPointsMap.push({center: center, points: surroundingPoints});
     });
-    // console.log(centerToPointsMap);
 
     for (const point of dots) {
         // const point = dots[0];
         let pointsToConnect = centerToPointsMap.filter(entry => entry.points.filter(p => p.isEqualTo(point)).length === 1).map(entry => entry.center);
 
-        if (pointsToConnect.length > 0) {
+        if (!!pointsToConnect.length) {
             let centerPointX = 0;
             let centerPointY = 0;
             pointsToConnect.forEach(pt => {
@@ -129,8 +139,8 @@ function delaunayTriangulation(points: Point[]) {
             const centerPoint = new Point(centerPointX, centerPointY);
             pointsToConnect = pointsToConnect.map(pt => new Point(pt.x - centerPoint.x, pt.y - centerPoint.y))
                 .sort((a, b) => {
-                    let angleA = a.angleTo(new Point(0,0));
-                    let angleB = b.angleTo(new Point(0,0));
+                    const angleA = a.angleTo(new Point(0,0));
+                    const angleB = b.angleTo(new Point(0,0));
                     if (angleA < angleB) {
                         return 1;
                     }
@@ -143,37 +153,12 @@ function delaunayTriangulation(points: Point[]) {
         }
     }
 
-    // for (const dot of dots) {
-    //     let map = circumCenters.flatMap(center => ({point: center, distance: center.distanceTo(dot)}));
-    //     const minimum = map.sort((a,b) => a.distance < b.distance ? -1 : 1)[0].distance;
-    //     const newPoints = map.filter(a => a.distance === minimum);
-    //
-    //     ctx.beginPath();
-    //     ctx.moveTo(newPoints[0].point.x, newPoints[0].point.y);
-    //
-    //     for (let i = 1; i < newPoints.length; i++) {
-    //         ctx.lineTo(newPoints[i].point.x, newPoints[i].point.y);
-    //     }
-    //
-    //     ctx.lineTo(newPoints[0].point.x, newPoints[0].point.y)
-    //     ctx.fillStyle = "#F00";
-    //     ctx.strokeStyle = "#F00";
-    //     ctx.stroke();
-    //     ctx.fill();
-    //     ctx.closePath()
-    //
-    //     console.log("==================")
-    //     console.log(map);
-    //     console.log(newPoints);
-    // }
-
     for (const dot of dots) {
         dot.draw(ctx);
     }
 
-
     function addCircumCenterIfNotPresent(triangle: Triangle) {
-        let circumCenter = triangle.getCircumCenter();
+        const circumCenter = triangle.getCircumCenter();
         if (!circumCenters.has(circumCenter)) {
             circumCenters.add(circumCenter);
         }

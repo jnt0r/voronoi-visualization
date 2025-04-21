@@ -1,7 +1,8 @@
 export default class Point {
-    private velocity_x: number;
-    private velocity_y: number;
+    velocity_x: number;
+    velocity_y: number;
     public readonly color: string;
+    public fillStyle = "#000";
 
     public constructor(public x: number, public y: number) {
         this.velocity_x = Math.floor(Math.random() * (1 - -1 + 1)) + -1;
@@ -41,12 +42,13 @@ export default class Point {
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI, false);
-            ctx.fillStyle = "#000";
-            ctx.fill();
-            ctx.closePath();
-            this.tick();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI, false);
+        ctx.fillStyle = this.fillStyle;
+        ctx.fill();
+        ctx.closePath();
+
+        this.tick();
     }
 }
 
